@@ -6,9 +6,13 @@ import requests
 import geopy.distance
 import math
 
+bgColor, fColor, entryBg, entryFg = '#333333', '#73d0b3', '#595959', '#83dec2'
+
 # Initialize and assign dictionaries
-addy_file = open('data\Address.txt')
-addy_dict = {}
+addy_file, name_file, offense_file, indv_file, off_code_file = open('data\Address.txt'), open(
+    'data\\NAME.txt'), open('data\\Offense.txt'), open('data\\INDV.txt'), open('data\\OFF_CODE_SOR.txt')
+addy_dict, name_dict, offense_dict, indv_dict, off_code_dict = {}, {}, {}, {}, {}
+
 for x in addy_file:
     temp = x.split('\t')
     id = temp[1]
@@ -19,8 +23,6 @@ for x in addy_file:
     coord = (lat, lon)
     addy_dict[id] = [addy, coord, zipcode]
 
-name_dict = {}
-name_file = open('data\\NAME.txt')
 for x in name_file:
     temp = x.split('\t')
     id = temp[1]
@@ -28,8 +30,6 @@ for x in name_file:
     last_name = temp[4]
     name_dict[id] = [first_name, last_name]
 
-offense_dict = {}
-offense_file = open('data\\Offense.txt')
 for x in offense_file:
     temp = x.split('\t')
     id = temp[0]
@@ -38,15 +38,11 @@ for x in offense_file:
     victim_sex = temp[13]
     offense_dict[id] = [offense_code, victim_age, victim_sex]
 
-indv_dict = {}
-indv_file = open('data\\INDV.txt')
 for x in indv_file:
     temp = x.split('\t')
     sid = re.sub(r'\n', '', temp[1])
     indv_dict[sid] = temp[0]
 
-off_code_dict = {}
-off_code_file = open('data\\OFF_CODE_SOR.txt')
 for x in off_code_file:
     temp = x.split('\t')
     try:
@@ -56,13 +52,30 @@ for x in off_code_file:
     except:
         pass
 
-# print('Address: ' + addy_dict['13347593'][0] +
-#       '\nOffense: ' + offense_dict['13347593'][1] + " " + offense_dict['13347593'][2] + '\nMore Offense: ' + off_code_dict[offense_dict['13347593'][0]])
+
+def narrow(user_coords, zipcode):
+    close_dict = {}
+    for x in addy_dict:
+        if addy_dict[x][2] == '':
+            continue
+        else:
+            temp_zip = int(addy_dict[x][2])
+            checker = math.floor(int(zipcode)/1000)
+            # Creating dictionary of all offenders with same first two digits
+            if math.floor(temp_zip/1000) == checker:
+                distance = geopy.distance.distance(
+                    addy_dict[x][1], user_coords).miles
+                # If place is within 2 miles of user location
+                if distance <= 2:
+                    close_dict[x] = addy_dict[x]
+    return close_dict
 
 
 def analyze(address, zipcode, sex, age):
     new = tk.Toplevel()
     new.geometry('400x400')
+    new.resizable(False, False)
+    new.configure(background=bgColor)
 
     try:
         url = 'https://nominatim.openstreetmap.org/search/' + \
@@ -73,27 +86,7 @@ def analyze(address, zipcode, sex, age):
         lon = response[0]['lon']
         user_coords = (lat, lon)
 
-        print(user_coords)
-        print(addy_dict['13347593'][1])
-        distance = geopy.distance.distance(
-            addy_dict['13347593'][1], user_coords).miles
-        print(distance)
-
-        close_dict = {}
-        for x in addy_dict:
-            if addy_dict[x][2] == '':
-                continue
-            else:
-                temp_zip = int(addy_dict[x][2])
-                checker = math.floor(int(zipcode)/1000)
-                # Creating dictionary of all offenders with same first two digits
-                if math.floor(temp_zip/1000) == checker:
-                    distance = geopy.distance.distance(
-                        addy_dict[x][1], user_coords).miles
-                    # If place is within 2 miles of user location
-                    if distance <= 2:
-                        close_dict[x] = addy_dict[x]
-        print(close_dict)
+        close_offenders = narrow(user_coords, zipcode)
     except Exception as e:
         print("Invalid Address")
         print(e)
