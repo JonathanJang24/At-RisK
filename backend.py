@@ -5,7 +5,7 @@ import urllib.parse
 import requests
 import geopy.distance
 import math
-from custom_errors import InvalidSexError
+from custom_errors import InvalidSexError, ImpossibleAgeError
 
 bgColor, fColor, entryBg, entryFg = '#333333', '#73d0b3', '#595959', '#83dec2'
 
@@ -82,9 +82,11 @@ def analyze(address, zipcode, sex, age):
         if(sex.upper() != 'M' and sex.upper() != 'F'):
             raise InvalidSexError
 
+        if(int(age) < 0 or int(age) > 122):
+            raise ImpossibleAgeError
+
         url = 'https://nominatim.openstreetmap.org/search/' + \
             urllib.parse.quote(address+" " + zipcode) + '?format=json'
-        print(url)
         response = requests.get(url).json()
         lat = response[0]['lat']
         lon = response[0]['lon']
@@ -92,12 +94,28 @@ def analyze(address, zipcode, sex, age):
 
         close_offenders = narrow(user_coords, zipcode)
 
+        sex_match = 0
+        age_match = 0
+        for x in close_offenders:
+            if offense_dict[x][2] == sex.upper():
+                sex_match += 1
+            # If offender's previous victim's age is +- 3 of individual's age
+            if(int(offense_dict[x][1])-3 <= int(age) and int(offense_dict[x][1])+3 >= int(age)):
+                age_match += 1
+
+        print(age_match)
+
     except IndexError:
         print("Invalid Address")
         new.destroy()
     except ValueError:
         print('Invalid Zipcode')
+        new.destroy()
     except InvalidSexError:
         print('Invalid Sex')
+        new.destroy()
+    except ImpossibleAgeError:
+        print('Impossible Age')
+        new.destroy()
     except Exception as e:
         print(e)
