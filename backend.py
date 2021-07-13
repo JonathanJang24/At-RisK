@@ -5,6 +5,7 @@ import urllib.parse
 import requests
 import geopy.distance
 import math
+from custom_errors import InvalidSexError
 
 bgColor, fColor, entryBg, entryFg = '#333333', '#73d0b3', '#595959', '#83dec2'
 
@@ -78,6 +79,9 @@ def analyze(address, zipcode, sex, age):
     new.configure(background=bgColor)
 
     try:
+        if(sex.upper() != 'M' and sex.upper() != 'F'):
+            raise InvalidSexError
+
         url = 'https://nominatim.openstreetmap.org/search/' + \
             urllib.parse.quote(address+" " + zipcode) + '?format=json'
         print(url)
@@ -87,7 +91,13 @@ def analyze(address, zipcode, sex, age):
         user_coords = (lat, lon)
 
         close_offenders = narrow(user_coords, zipcode)
-    except Exception as e:
+
+    except IndexError:
         print("Invalid Address")
-        print(e)
         new.destroy()
+    except ValueError:
+        print('Invalid Zipcode')
+    except InvalidSexError:
+        print('Invalid Sex')
+    except Exception as e:
+        print(e)
