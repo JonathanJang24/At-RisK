@@ -1,18 +1,19 @@
+from re import X
 import tkinter as tk
-from tkinter.constants import FLAT, GROOVE, LEFT, RAISED, RIDGE, SOLID, SUNKEN, UNDERLINE
+from tkinter.constants import CENTER, FLAT, GROOVE, LEFT, RAISED, RIDGE, SOLID, SUNKEN, UNDERLINE
 from tkinter.font import BOLD, ITALIC
 from backend import analyze
 
+
 # Declaring Colors
-bgColor, fColor, entryBg, entryFg = '#333333', '#73d0b3', '#595959', '#83dec2'
+bgColor, fColor, entryBg, entryFg, errorColor = '#333333', '#73d0b3', '#595959', '#83dec2', '#fa594d'
 
 # Initalize Tkitner Frame
 root = tk.Tk()
-root.geometry('500x250')
+root.geometry('500x260')
 root.configure(background=bgColor)
 root.title('At Risk?')
 root.resizable(False, False)
-text = tk.Text(root)
 myFont = 'PierSans-Light'
 
 
@@ -35,10 +36,13 @@ def query():
         myFont, 12), fg=entryFg)
     zip = tk.Entry(root, bg=entryBg, font=(
         myFont, 12), fg=entryFg)
-    age = tk.Entry(root, bg=entryBg, font=(
-        myFont, 12), fg=entryFg)
     sex = tk.Entry(root, bg=entryBg, font=(
         myFont, 12), fg=entryFg)
+    age = tk.Entry(root, bg=entryBg, font=(
+        myFont, 12), fg=entryFg)
+
+    error_label = tk.Label(text="test", bg=bgColor,
+                           fg=errorColor, font=myFont, justify=CENTER)
 
     # Place widgets
     instruction.place(x=12, y=50)
@@ -48,9 +52,10 @@ def query():
     age_label.place(x=10, y=200)
     addy.place(x=80, y=80, width=300, height=30)
     zip.place(x=80, y=120, width=300, height=30)
-    age.place(x=80, y=160, width=300, height=30)
-    sex.place(x=80, y=200, width=300, height=30)
+    age.place(x=80, y=200, width=300, height=30)
+    sex.place(x=80, y=160, width=300, height=30)
     search_button.place(x=395, y=125)
+    error_label.place(x=250, y=230)
 
 
 # start button function
