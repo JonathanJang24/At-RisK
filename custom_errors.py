@@ -4,3 +4,7 @@ class Error(Exception):
 
 class InvalidSexError(Error):
     pass
+
+
+class ImpossibleAgeError(Error):
+    pass
