@@ -42,7 +42,7 @@ def query():
         myFont, 12), fg=entryFg)
 
     error_label = tk.Label(text="test", bg=bgColor,
-                           fg=errorColor, font=myFont, justify=CENTER)
+                           fg=errorColor, font=myFont)
 
     # Place widgets
     instruction.place(x=12, y=50)
@@ -55,8 +55,7 @@ def query():
     age.place(x=80, y=200, width=300, height=30)
     sex.place(x=80, y=160, width=300, height=30)
     search_button.place(x=395, y=125)
-    error_label.place(x=250, y=230)
-
+    error_label.place(x=250, y=240, anchor='center')
 
 # start button function
 
@@ -81,6 +80,6 @@ desc_label.place(x=10, y=80)
 
 start_button = tk.Button(text='Get\nStarted', command=start,
                          font=(myFont, 22, ITALIC, BOLD, UNDERLINE), background=entryBg, fg=entryFg, activebackground=bgColor, activeforeground=fColor)
-start_button.place(x=360, y=100)
+start_button.place(x=365, y=100)
 
 root.mainloop()
