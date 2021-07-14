@@ -6,52 +6,11 @@ import requests
 import geopy.distance
 import math
 from custom_errors import InvalidSexError, ImpossibleAgeError
+from openData import addy_dict, name_dict, offense_dict, indv_dict, off_code_dict
 
 bgColor, fColor, entryBg, entryFg = '#333333', '#73d0b3', '#595959', '#83dec2'
-
-# Initialize and assign dictionaries
-addy_file, name_file, offense_file, indv_file, off_code_file = open('data\Address.txt'), open(
-    'data\\NAME.txt'), open('data\\Offense.txt'), open('data\\INDV.txt'), open('data\\OFF_CODE_SOR.txt')
-addy_dict, name_dict, offense_dict, indv_dict, off_code_dict = {}, {}, {}, {}, {}
-
-for x in addy_file:
-    temp = x.split('\t')
-    id = temp[1]
-    addy = ' '.join(temp[2:9])
-    zipcode = temp[8]
-    lat = temp[10]
-    lon = re.sub(r'\n', '', temp[11])
-    coord = (lat, lon)
-    addy_dict[id] = [addy, coord, zipcode]
-
-for x in name_file:
-    temp = x.split('\t')
-    id = temp[1]
-    first_name = re.sub(r'\n', '', temp[5])
-    last_name = temp[4]
-    name_dict[id] = [first_name, last_name]
-
-for x in offense_file:
-    temp = x.split('\t')
-    id = temp[0]
-    offense_code = temp[5]
-    victim_age = temp[12]
-    victim_sex = temp[13]
-    offense_dict[id] = [offense_code, victim_age, victim_sex]
-
-for x in indv_file:
-    temp = x.split('\t')
-    sid = re.sub(r'\n', '', temp[1])
-    indv_dict[sid] = temp[0]
-
-for x in off_code_file:
-    temp = x.split('\t')
-    try:
-        key = temp[3]
-        offense = temp[5]
-        off_code_dict[key] = offense
-    except:
-        pass
+risk0_color, risk1_color, risk2_color, risk3_color = '#32a852', '#f7ff66', '#ffba66', '#f55d5d'
+myFont = 'PierSans-Light'
 
 
 def narrow(user_coords, zipcode):
@@ -70,6 +29,29 @@ def narrow(user_coords, zipcode):
                 if distance <= 2:
                     close_dict[x] = addy_dict[x]
     return close_dict
+
+
+def general_level(dict):
+    if len(dict) == 0:
+        return 0
+    elif len(dict) > 0 and len(dict) < 4:
+        return 1
+    elif len(dict) > 3 and len(dict) < 9:
+        return 2
+    else:
+        return 3
+
+
+def specific_level(dict, user_sex, user_age):
+    sex_match = 0
+    age_match = 0
+    for x in dict:
+        if offense_dict[x][2] == user_sex.upper():
+            sex_match += 1
+        # If offender's previous victim's age is +- 3 of individual's age
+        if(int(offense_dict[x][1])-3 <= int(user_age) and int(offense_dict[x][1])+3 >= int(user_age)):
+            age_match += 1
+    return sex_match, age_match
 
 
 def analyze(address, zipcode, sex, age):
@@ -94,16 +76,8 @@ def analyze(address, zipcode, sex, age):
 
         close_offenders = narrow(user_coords, zipcode)
 
-        sex_match = 0
-        age_match = 0
-        for x in close_offenders:
-            if offense_dict[x][2] == sex.upper():
-                sex_match += 1
-            # If offender's previous victim's age is +- 3 of individual's age
-            if(int(offense_dict[x][1])-3 <= int(age) and int(offense_dict[x][1])+3 >= int(age)):
-                age_match += 1
-
-        print(age_match)
+        risk_1 = general_level(close_offenders)
+        sex_risk, age_risk = specific_level(close_offenders, sex, age)
 
     except IndexError:
         print("Invalid Address")
@@ -119,3 +93,5 @@ def analyze(address, zipcode, sex, age):
         new.destroy()
     except Exception as e:
         print(e)
+
+    risk_label = tk.Label(font=myFont)
