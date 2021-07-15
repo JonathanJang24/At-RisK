@@ -9,10 +9,18 @@ import geopy.distance
 import math
 from custom_errors import InvalidSexError, ImpossibleAgeError
 from openData import addy_dict, name_dict, offense_dict, indv_dict, off_code_dict
+from bs4 import BeautifulSoup
+from PIL import Image, ImageTk
+import io
 
 bgColor, fColor, entryBg, entryFg = '#333333', '#73d0b3', '#595959', '#83dec2'
 risk0_color, risk1_color, risk2_color, risk3_color = '#97e8c1', '#f7ff66', '#ffba66', '#f55d5d'
 myFont = 'PierSans-Light'
+error_msg = ""
+
+
+def error():
+    return error_msg
 
 
 def narrow(user_coords, zipcode):
@@ -33,18 +41,17 @@ def narrow(user_coords, zipcode):
                 if distance <= 2:
                     close_dict[x] = addy_dict[x]
                 if(distance < closest_distance):
-                    print(x)
                     closest_distance = distance
                     closest_offender = x
 
-    offender_label.config(text="The closest offender is %f miles away. They live at %s" % (
-        closest_distance, re.sub(r'\t', '', addy_dict[closest_offender][0])))
+    offender_label.config(text="The closest offender is %.3f miles away. He/She lives at %s" % (
+        round(closest_distance, 3), re.sub(r' ', ' ', addy_dict[closest_offender][0])))
     return close_dict, closest_distance, closest_offender
 
 
 def analyze(address, zipcode, sex, age):
-    global risk_label, sex_label, age_label, quantity_label, offender_label
-    new_window = tk.Tk()
+    global risk_label, sex_label, age_label, quantity_label, offender_label, error_msg
+    new_window = tk.Toplevel()
     new_window.geometry('400x400')
     new_window.resizable(False, False)
     new_window.configure(background=bgColor)
@@ -58,13 +65,13 @@ def analyze(address, zipcode, sex, age):
     sex_label = tk.Label(new_window, text="", font=(
         myFont, 12), bg=bgColor, wraplength=380, justify=LEFT)
     offender_label = tk.Label(new_window, text="", fg=fColor, bg=bgColor, font=(
-        myFont, 12), justify=LEFT, wraplength=380)
+        myFont, 12, UNDERLINE), justify=LEFT, wraplength=380)
 
     risk_label.place(x=200, y=20, anchor="center")
     quantity_label.place(x=10, y=70, anchor='w')
     sex_label.place(x=10, y=120, anchor='w')
     age_label.place(x=10, y=170, anchor='w')
-    offender_label.place(x=10, y=220, anchor='w')
+    offender_label.place(x=10, y=230, anchor='w')
 
     try:
         if(sex.upper() != 'M' and sex.upper() != 'F'):
@@ -86,21 +93,31 @@ def analyze(address, zipcode, sex, age):
         risk_1 = quantity_risk(close_offenders)
         sex_risk, age_risk = specific_level(close_offenders, sex, age)
         general_risk(risk_1, sex_risk, age_risk)
+        error_msg = ""
+
+        source = requests.get(
+            'https://publicsite.dps.texas.gov/SexOffenderRegistry/Search/Rapsheet/CurrentPhoto?Sid='+indv_dict[closest_offender]).content
+
+        img = ImageTk.PhotoImage(Image.open(io.BytesIO(source)))
+        img_label = tk.Label(new_window, image=img,
+                             bg=bgColor, height=120, width=120)
+        img_label.place(x=200, y=320, anchor='w')
 
     except IndexError:
-        print("Invalid Address")
+        error_msg = ("Invalid Address")
         new_window.destroy()
     except ValueError:
-        print('Invalid Zipcode')
+        error_msg = ('Invalid Zipcode')
         new_window.destroy()
     except InvalidSexError:
-        print('Invalid Sex')
+        error_msg = ('Invalid Sex')
         new_window.destroy()
     except ImpossibleAgeError:
-        print('Impossible Age')
+        error_msg = ('Impossible Age')
         new_window.destroy()
     except Exception as e:
-        print(e)
+        error_msg = (e)
+        new_window.destroy()
     new_window.mainloop()
 
 
