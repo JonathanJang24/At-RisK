@@ -7,7 +7,13 @@ addy_dict, name_dict, offense_dict, indv_dict, off_code_dict = {}, {}, {}, {}, {
 for x in addy_file:
     temp = x.split('\t')
     id = temp[1]
-    addy = ' '.join(temp[2:9])
+    temp_list = []
+    for y in temp[2:9]:
+        if(y == ''):
+            continue
+        else:
+            temp_list.append(y)
+    addy = ' '.join(temp_list)
     zipcode = temp[8]
     lat = temp[10]
     lon = re.sub(r'\n', '', temp[11])
@@ -32,7 +38,7 @@ for x in offense_file:
 for x in indv_file:
     temp = x.split('\t')
     sid = re.sub(r'\n', '', temp[1])
-    indv_dict[sid] = temp[0]
+    indv_dict[temp[0]] = sid
 
 for x in off_code_file:
     temp = x.split('\t')
