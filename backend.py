@@ -15,7 +15,6 @@ import io
 bgColor, fColor, entryBg, entryFg = '#333333', '#73d0b3', '#595959', '#83dec2'
 risk0_color, risk1_color, risk2_color, risk3_color = '#97e8c1', '#f7ff66', '#ffba66', '#f55d5d'
 myFont = 'PierSans-Light'
-error_msg = ""
 
 
 def destroy():
@@ -49,28 +48,32 @@ def narrow(user_coords, zipcode):
 
 
 def analyze(address, zipcode, sex, age):
-    global new_window, risk_label, sex_label, age_label, quantity_label, offender_label, error_msg
+    global new_window, risk_label, sex_label, age_label, quantity_label, offender_label, error_msg, nearby_label
     new_window = tk.Toplevel()
     new_window.geometry('400x400')
     new_window.resizable(False, False)
     new_window.configure(background=bgColor)
 
+    # Initalizing most of the labels
     risk_label = tk.Label(new_window,
                           text="", font=(myFont, 20, BOLD, UNDERLINE), bg=bgColor)
-    quantity_label = tk.Label(new_window, text="test", font=(
+    quantity_label = tk.Label(new_window, text="", font=(
         myFont, 12), bg=bgColor, fg=fColor, wraplength=380, justify=LEFT)
     age_label = tk.Label(new_window, text="", font=(
         myFont, 12), bg=bgColor, wraplength=380, justify=LEFT)
     sex_label = tk.Label(new_window, text="", font=(
         myFont, 12), bg=bgColor, wraplength=380, justify=LEFT)
     offender_label = tk.Label(new_window, text="", fg=fColor, bg=bgColor, font=(
-        myFont, 12, UNDERLINE), justify=LEFT, wraplength=380)
+        myFont, 12, UNDERLINE), justify=LEFT, wraplength=225)
+    nearby_label = tk.Label(new_window, text="", bg=bgColor, fg=fColor, font=(
+        myFont, 12, UNDERLINE), wraplength=380)
 
+    # Placing all labels
     risk_label.place(x=200, y=20, anchor="center")
     quantity_label.place(x=10, y=70, anchor='w')
     sex_label.place(x=10, y=120, anchor='w')
     age_label.place(x=10, y=170, anchor='w')
-    offender_label.place(x=10, y=230, anchor='w')
+    offender_label.place(x=10, y=280, anchor='w')
 
     if(sex.upper() != 'M' and sex.upper() != 'F'):
         raise InvalidSexError
@@ -78,6 +81,7 @@ def analyze(address, zipcode, sex, age):
     if(int(age) < 0 or int(age) > 122):
         raise ImpossibleAgeError
 
+    # Getting user coordinates
     url = 'https://nominatim.openstreetmap.org/search/' + \
         urllib.parse.quote(address+" " + zipcode) + '?format=json'
     response = requests.get(url).json()
@@ -85,22 +89,27 @@ def analyze(address, zipcode, sex, age):
     lon = response[0]['lon']
     user_coords = (lat, lon)
 
+    # Calling of all functions
     close_offenders, closest_distance, closest_offender = narrow(
         user_coords, zipcode)
-
     risk_1 = quantity_risk(close_offenders)
     sex_risk, age_risk = specific_level(close_offenders, sex, age)
     total = risk_1 + sex_risk + age_risk
     general_risk(risk_1, sex_risk, age_risk)
-    error_msg = ""
 
+    # How many are nearby
+    nearby_label.config(
+        text="There are %d offenders in a 2 mile radius." % len(close_offenders))
+    nearby_label.place(x=10, y=215, anchor='w')
+
+    # Code for picture of closest offender
     source = requests.get(
         'https://publicsite.dps.texas.gov/SexOffenderRegistry/Search/Rapsheet/CurrentPhoto?Sid='+indv_dict[closest_offender]).content
 
     img = ImageTk.PhotoImage(Image.open(io.BytesIO(source)))
     img_label = tk.Label(new_window, image=img,
                          bg=bgColor, height=120, width=120)
-    img_label.place(x=220, y=320, anchor='w')
+    img_label.place(x=240, y=245, anchor='nw')
 
     new_window.mainloop()
 
@@ -109,18 +118,22 @@ def quantity_risk(dict):
     if(len(dict) == 0):
         quantity_label.config(
             text='There are no convicted offenders in a 2 mile radius', fg=risk0_color)
+        nearby_label.config(fg=risk0_color)
         return 0
     elif(len(dict) > 0 and len(dict) < 6):
         quantity_label.config(
             text='There is a small quantity of convicted offenders in a 2 mile radius', fg=risk1_color)
+        nearby_label.config(fg=risk1_color)
         return 1
     elif(len(dict) > 5 and len(dict) < 11):
         quantity_label.config(
             text='There is a moderate presence of convicted offenders in a 2 mile radius', fg=risk2_color)
+        nearby_label.config(fg=risk2_color)
         return 2
     elif(len(dict) > 10):
         quantity_label.config(
-            text='There is a relativley large amount of convicted offenders in a 2 mile radius', fg=risk3_color)
+            text='There is a relatively large amount of convicted offenders in a 2 mile radius', fg=risk3_color)
+        nearby_label.config(fg=risk3_color)
         return 3
 
 
