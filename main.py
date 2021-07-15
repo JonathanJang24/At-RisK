@@ -19,8 +19,8 @@ myFont = 'PierSans-Light'
 
 def update():
     try:
-        analyze(addy.get(), zip.get(), sex.get(), age.get())
         error_label.config(text="")
+        analyze(addy.get(), zip.get(), sex.get(), age.get())
     except IndexError:
         error_label.config(text="Invalid Address")
         destroy()
@@ -33,8 +33,8 @@ def update():
     except ImpossibleAgeError:
         error_label.config(text='Impossible Age')
         destroy()
-    except Exception:
-        error_label.config(text="Error")
+    except:
+        error_label.config(text='Error')
         destroy()
 
 
@@ -84,7 +84,7 @@ def query():
 def start():
     # Clears Start Screen
     for widgets in root.winfo_children():
-        if str(widgets) != '.!label':
+        if str(widgets) != '.!label' and str(widgets) != '.!label8':
             widgets.destroy()
     # Calls second window
     query()
