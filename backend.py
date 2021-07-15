@@ -1,5 +1,4 @@
 import tkinter as tk
-import os
 import re
 from tkinter.constants import CENTER, LEFT, UNDERLINE
 from tkinter.font import BOLD
@@ -19,8 +18,8 @@ myFont = 'PierSans-Light'
 error_msg = ""
 
 
-def error():
-    return error_msg
+def destroy():
+    new_window.destroy()
 
 
 def narrow(user_coords, zipcode):
@@ -50,7 +49,7 @@ def narrow(user_coords, zipcode):
 
 
 def analyze(address, zipcode, sex, age):
-    global risk_label, sex_label, age_label, quantity_label, offender_label, error_msg
+    global new_window, risk_label, sex_label, age_label, quantity_label, offender_label, error_msg
     new_window = tk.Toplevel()
     new_window.geometry('400x400')
     new_window.resizable(False, False)
@@ -59,7 +58,7 @@ def analyze(address, zipcode, sex, age):
     risk_label = tk.Label(new_window,
                           text="", font=(myFont, 20, BOLD, UNDERLINE), bg=bgColor)
     quantity_label = tk.Label(new_window, text="test", font=(
-        myFont, 12), bg=bgColor, wraplength=380, justify=LEFT)
+        myFont, 12), bg=bgColor, fg=fColor, wraplength=380, justify=LEFT)
     age_label = tk.Label(new_window, text="", font=(
         myFont, 12), bg=bgColor, wraplength=380, justify=LEFT)
     sex_label = tk.Label(new_window, text="", font=(
@@ -73,51 +72,36 @@ def analyze(address, zipcode, sex, age):
     age_label.place(x=10, y=170, anchor='w')
     offender_label.place(x=10, y=230, anchor='w')
 
-    try:
-        if(sex.upper() != 'M' and sex.upper() != 'F'):
-            raise InvalidSexError
+    if(sex.upper() != 'M' and sex.upper() != 'F'):
+        raise InvalidSexError
 
-        if(int(age) < 0 or int(age) > 122):
-            raise ImpossibleAgeError
+    if(int(age) < 0 or int(age) > 122):
+        raise ImpossibleAgeError
 
-        url = 'https://nominatim.openstreetmap.org/search/' + \
-            urllib.parse.quote(address+" " + zipcode) + '?format=json'
-        response = requests.get(url).json()
-        lat = response[0]['lat']
-        lon = response[0]['lon']
-        user_coords = (lat, lon)
+    url = 'https://nominatim.openstreetmap.org/search/' + \
+        urllib.parse.quote(address+" " + zipcode) + '?format=json'
+    response = requests.get(url).json()
+    lat = response[0]['lat']
+    lon = response[0]['lon']
+    user_coords = (lat, lon)
 
-        close_offenders, closest_distance, closest_offender = narrow(
-            user_coords, zipcode)
+    close_offenders, closest_distance, closest_offender = narrow(
+        user_coords, zipcode)
 
-        risk_1 = quantity_risk(close_offenders)
-        sex_risk, age_risk = specific_level(close_offenders, sex, age)
-        general_risk(risk_1, sex_risk, age_risk)
-        error_msg = ""
+    risk_1 = quantity_risk(close_offenders)
+    sex_risk, age_risk = specific_level(close_offenders, sex, age)
+    total = risk_1 + sex_risk + age_risk
+    general_risk(risk_1, sex_risk, age_risk)
+    error_msg = ""
 
-        source = requests.get(
-            'https://publicsite.dps.texas.gov/SexOffenderRegistry/Search/Rapsheet/CurrentPhoto?Sid='+indv_dict[closest_offender]).content
+    source = requests.get(
+        'https://publicsite.dps.texas.gov/SexOffenderRegistry/Search/Rapsheet/CurrentPhoto?Sid='+indv_dict[closest_offender]).content
 
-        img = ImageTk.PhotoImage(Image.open(io.BytesIO(source)))
-        img_label = tk.Label(new_window, image=img,
-                             bg=bgColor, height=120, width=120)
-        img_label.place(x=220, y=320, anchor='w')
+    img = ImageTk.PhotoImage(Image.open(io.BytesIO(source)))
+    img_label = tk.Label(new_window, image=img,
+                         bg=bgColor, height=120, width=120)
+    img_label.place(x=220, y=320, anchor='w')
 
-    except IndexError:
-        error_msg = ("Invalid Address")
-        new_window.destroy()
-    except ValueError:
-        error_msg = ('Invalid Zipcode')
-        new_window.destroy()
-    except InvalidSexError:
-        error_msg = ('Invalid Sex')
-        new_window.destroy()
-    except ImpossibleAgeError:
-        error_msg = ('Impossible Age')
-        new_window.destroy()
-    except Exception as e:
-        error_msg = (e)
-        new_window.destroy()
     new_window.mainloop()
 
 
@@ -125,15 +109,19 @@ def quantity_risk(dict):
     if(len(dict) == 0):
         quantity_label.config(
             text='There are no convicted offenders in a 2 mile radius', fg=risk0_color)
+        return 0
     elif(len(dict) > 0 and len(dict) < 6):
         quantity_label.config(
             text='There is a small quantity of convicted offenders in a 2 mile radius', fg=risk1_color)
+        return 1
     elif(len(dict) > 5 and len(dict) < 11):
         quantity_label.config(
             text='There is a moderate presence of convicted offenders in a 2 mile radius', fg=risk2_color)
+        return 2
     elif(len(dict) > 10):
         quantity_label.config(
             text='There is a relativley large amount of convicted offenders in a 2 mile radius', fg=risk3_color)
+        return 3
 
 
 def specific_level(dict, user_sex, user_age):
@@ -141,6 +129,9 @@ def specific_level(dict, user_sex, user_age):
 
     sex_match = 0
     age_match = 0
+    sex_risk = 0
+    age_risk = 0
+
     for x in dict:
         if offense_dict[x][2] == user_sex.upper():
             sex_match += 1
@@ -159,12 +150,15 @@ def specific_level(dict, user_sex, user_age):
     elif(sex_match > 0 and sex_match < 4):
         sex_label.config(
             text="Within the area, this sex is at slight risk based on previous records.", fg=risk1_color)
+        sex_risk = 1
     elif(sex_match > 3 and sex_match < 8):
         sex_label.config(
             text="Within the area, this sex is at risk based on previous records.", fg=risk2_color)
+        sex_risk = 2
     elif(sex_match > 7):
         sex_label.config(
             text="Within the area, this sex is at high risk based on previous records.", fg=risk3_color)
+        sex_risk = 3
 
     if(age_match == 0):
         age_label.config(
@@ -172,16 +166,25 @@ def specific_level(dict, user_sex, user_age):
     elif(age_match > 0 and age_match < 4):
         age_label.config(
             text='Within the area, similar ages are at slight risk based on previous records.', fg=risk1_color)
+        age_risk = 1
     elif(age_match > 3 and age_match < 8):
         age_label.config(
             text='Within the area, similar ages are at risk based on previous records.', fg=risk2_color)
+        age_risk = 2
     elif(age_match > 7):
         age_label.config(
             text='Within the area, similar ages are at high risk based on previous records.', fg=risk3_color)
+        age_risk = 3
 
-    return sex_match, age_match
+    return sex_risk, age_risk
 
 
 def general_risk(q, s, a):
-
-    risk_label.config(text="You are at no risk", fg=risk0_color)
+    if (not q and not s and not a):
+        risk_label.config(text="You are at no risk", fg=risk0_color)
+    elif (q <= 1 and s <= 1 and a <= 1):
+        risk_label.config(text="You should be cautious", fg=risk1_color)
+    elif (q <= 2 and s <= 2 and a <= 2):
+        risk_label.config(text="You may be at risk ", fg=risk2_color)
+    elif(q <= 3 and s <= 3 and a <= 3):
+        risk_label.config(text="You are not safe", fg=risk3_color)
