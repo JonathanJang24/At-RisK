@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter.constants import CENTER, FLAT, GROOVE, LEFT, RAISED, RIDGE, SOLID, SUNKEN, UNDERLINE
 from tkinter.font import BOLD, ITALIC
 from backend import analyze
-
+from backend import error
 
 # Declaring Colors
 bgColor, fColor, entryBg, entryFg, errorColor = '#333333', '#73d0b3', '#595959', '#83dec2', '#fa594d'
@@ -17,11 +17,16 @@ root.resizable(False, False)
 myFont = 'PierSans-Light'
 
 
-def query():
+def update():
+    analyze(addy.get(), zip.get(), sex.get(), age.get())
+    error_label.config(text=error())
 
+
+def query():
+    global error_label, addy, zip, sex, age
     # Declare Widgets
     search_button = tk.Button(text='Analyze', font=(
-        myFont, 16, BOLD, UNDERLINE, ITALIC), bg=entryBg, fg=entryFg, activebackground=bgColor, activeforeground=fColor, command=lambda: analyze(addy.get(), zip.get(), sex.get(), age.get()))
+        myFont, 16, BOLD, UNDERLINE, ITALIC), bg=entryBg, fg=entryFg, activebackground=bgColor, activeforeground=fColor, command=update)
     instruction = tk.Label(text='Enter the information prompted to find out your risk level.', font=(
         myFont, 13, BOLD), bg=bgColor, fg=fColor)
     addy_label = tk.Label(text='Address', font=(
@@ -41,7 +46,7 @@ def query():
     age = tk.Entry(root, bg=entryBg, font=(
         myFont, 12), fg=entryFg)
 
-    error_label = tk.Label(text="test", bg=bgColor,
+    error_label = tk.Label(text=error(), bg=bgColor,
                            fg=errorColor, font=myFont)
 
     # Place widgets
@@ -55,7 +60,7 @@ def query():
     age.place(x=80, y=200, width=300, height=30)
     sex.place(x=80, y=160, width=300, height=30)
     search_button.place(x=395, y=125)
-    error_label.place(x=250, y=240, anchor='center')
+    error_label.place(x=250, y=245, anchor='center')
 
 # start button function
 
