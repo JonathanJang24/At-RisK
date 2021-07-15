@@ -101,7 +101,7 @@ def analyze(address, zipcode, sex, age):
         img = ImageTk.PhotoImage(Image.open(io.BytesIO(source)))
         img_label = tk.Label(new_window, image=img,
                              bg=bgColor, height=120, width=120)
-        img_label.place(x=200, y=320, anchor='w')
+        img_label.place(x=220, y=320, anchor='w')
 
     except IndexError:
         error_msg = ("Invalid Address")
@@ -159,10 +159,10 @@ def specific_level(dict, user_sex, user_age):
     elif(sex_match > 0 and sex_match < 4):
         sex_label.config(
             text="Within the area, this sex is at slight risk based on previous records.", fg=risk1_color)
-    elif(sex_match > 4 and sex_match < 8):
+    elif(sex_match > 3 and sex_match < 8):
         sex_label.config(
             text="Within the area, this sex is at risk based on previous records.", fg=risk2_color)
-    elif(sex_match > 8):
+    elif(sex_match > 7):
         sex_label.config(
             text="Within the area, this sex is at high risk based on previous records.", fg=risk3_color)
 
@@ -172,10 +172,10 @@ def specific_level(dict, user_sex, user_age):
     elif(age_match > 0 and age_match < 4):
         age_label.config(
             text='Within the area, similar ages are at slight risk based on previous records.', fg=risk1_color)
-    elif(age_match > 4 and age_match < 8):
+    elif(age_match > 3 and age_match < 8):
         age_label.config(
             text='Within the area, similar ages are at risk based on previous records.', fg=risk2_color)
-    elif(age_match > 8):
+    elif(age_match > 7):
         age_label.config(
             text='Within the area, similar ages are at high risk based on previous records.', fg=risk3_color)
 
