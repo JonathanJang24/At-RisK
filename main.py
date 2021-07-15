@@ -2,8 +2,8 @@ from re import X
 import tkinter as tk
 from tkinter.constants import CENTER, FLAT, GROOVE, LEFT, RAISED, RIDGE, SOLID, SUNKEN, UNDERLINE
 from tkinter.font import BOLD, ITALIC
-from backend import analyze
-from backend import error
+from backend import analyze, destroy
+from custom_errors import InvalidSexError, ImpossibleAgeError
 
 # Declaring Colors
 bgColor, fColor, entryBg, entryFg, errorColor = '#333333', '#73d0b3', '#595959', '#83dec2', '#fa594d'
@@ -18,8 +18,24 @@ myFont = 'PierSans-Light'
 
 
 def update():
-    analyze(addy.get(), zip.get(), sex.get(), age.get())
-    error_label.config(text=error())
+    try:
+        analyze(addy.get(), zip.get(), sex.get(), age.get())
+        error_label.config(text="")
+    except IndexError:
+        error_label.config(text="Invalid Address")
+        destroy()
+    except ValueError:
+        error_label.config(text='Invalid Zipcode')
+        destroy()
+    except InvalidSexError:
+        error_label.config(text='Invalid Sex')
+        destroy()
+    except ImpossibleAgeError:
+        error_label.config(text='Impossible Age')
+        destroy()
+    except Exception:
+        error_label.config(text="Error")
+        destroy()
 
 
 def query():
@@ -46,7 +62,7 @@ def query():
     age = tk.Entry(root, bg=entryBg, font=(
         myFont, 12), fg=entryFg)
 
-    error_label = tk.Label(text=error(), bg=bgColor,
+    error_label = tk.Label(root, text='', bg=bgColor,
                            fg=errorColor, font=myFont)
 
     # Place widgets
