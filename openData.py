@@ -42,9 +42,12 @@ for x in indv_file:
 
 for x in off_code_file:
     temp = x.split('\t')
-    try:
-        key = temp[3]
-        offense = temp[5]
-        off_code_dict[key] = offense
-    except:
-        pass
+    if(temp[2] == 'TX'):
+        try:
+            key = temp[3]
+            offense = temp[5]
+            off_code_dict[key] = offense
+        except:
+            pass
+    else:
+        continue
