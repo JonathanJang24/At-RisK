@@ -42,8 +42,8 @@ def narrow(user_coords, zipcode):
                     closest_distance = distance
                     closest_offender = x
 
-    offender_label.config(text="The closest offender is %.3f miles away. He/She lives at %s" % (
-        round(closest_distance, 3), re.sub(r' ', ' ', addy_dict[closest_offender][0])))
+    offender_label.config(text="The closest offender is %.3f miles away. He/She lives at %s. %s" % (
+        round(closest_distance, 3), re.sub(r' ', ' ', addy_dict[closest_offender][0]), off_code_dict[offense_dict[closest_offender][0]]))
     return close_dict, closest_distance, closest_offender
 
 
@@ -83,7 +83,7 @@ def analyze(address, zipcode, sex, age):
 
     # Getting user coordinates
     url = 'https://nominatim.openstreetmap.org/search/' + \
-        urllib.parse.quote(address+" " + zipcode) + '?format=json'
+        urllib.parse.quote(address+" " + zipcode) + " texas" + '?format=json'
     response = requests.get(url).json()
     lat = response[0]['lat']
     lon = response[0]['lon']
