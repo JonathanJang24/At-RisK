@@ -73,7 +73,7 @@ def analyze(address, zipcode, sex, age):
     quantity_label.place(x=10, y=70, anchor='w')
     sex_label.place(x=10, y=120, anchor='w')
     age_label.place(x=10, y=170, anchor='w')
-    offender_label.place(x=10, y=280, anchor='w')
+    offender_label.place(x=10, y=240, anchor='nw')
 
     if(sex.upper() != 'M' and sex.upper() != 'F'):
         raise InvalidSexError
