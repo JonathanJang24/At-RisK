@@ -9,12 +9,12 @@ Due to the API used to retrieve coordinate data from addresses, some addresses u
 ## Instructions
 * Install dependencies:
   * Assuming Python and Pip are properly installed, in a new command window type:
-    * 'pip install geopy'
-    * 'pip install bs4'
-    * 'pip install urllib3'
+    * `pip install geopy`
+    * `pip install bs4`
+    * `pip install urllib3`
 
 * In a command window with the directory in this folder, type:
-  * 'python main.py'
+  * `python main.py`
 
 * Fill in the input fields according to their label
 
