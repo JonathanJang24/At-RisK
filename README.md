@@ -12,6 +12,7 @@ Due to the API used to retrieve coordinate data from addresses, some addresses u
     * `pip install geopy`
     * `pip install bs4`
     * `pip install urllib3`
+    * `pip install PIL`
 
 * In a command window with the directory in this folder, type:
   * `python main.py`
