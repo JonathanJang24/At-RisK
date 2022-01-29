@@ -7,10 +7,23 @@ It uses a publically available database and public information to compute calcul
 Due to the API used to retrieve coordinate data from addresses, some addresses use older street names or different nearby zipcodes.
 
 ## Instructions
+* Install dependencies:
+  * Assuming Python and Pip are properly installed, in a new command window type:
+    * 'pip install geopy'
+    * 'pip install bs4'
+    * 'pip install urllib3'
+
+* In a command window with the directory in this folder, type:
+  * 'python main.py'
+
+* Fill in the input fields according to their label
 
 ## Technologies
+* Tkinter
+* Geopy
+* Urllib3
+* BeautifulSoup
+* API Requests
 
-
-
-
-***The program currently only has information on Texas Offenders***
+## Restrictions
+* The program currently only contains information regarding Texas Sex Offenders, as other states' databases are private
